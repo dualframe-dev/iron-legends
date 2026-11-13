@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>IRON LEGENDS — v0.18</title>
+<title>IRON LEGENDS — v0.19</title>
 <style>
   :root{--bg:#090C0B;--panel:#141916;--sub:#202723;--line:#303A33;--lime:#B7FF32;--glow:#D0FF70;--txt:#F1F4F1;--sub2:#929C96;--dis:#59615B;--warn:#FFAD42;--err:#FF5656}
   *{box-sizing:border-box}
@@ -80,10 +80,28 @@
   .badge .btx{flex:1}
   .badge .bname{font-weight:700}
   .badge .bprog{font-size:12px;color:var(--sub)}
+  .setRow{flex-direction:column;align-items:stretch}
+  .setMain{display:flex;gap:6px;align-items:center}
+  .setSub{display:flex;gap:8px;align-items:center;margin-top:7px}
+  .segType{display:flex;gap:4px}
+  .segBtn{padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--input);color:var(--sub);font-size:13px}
+  .segBtn.on{background:var(--lime);color:#10130c;border-color:var(--lime);font-weight:800}
+  .rpeSel{flex:1;padding:8px;border-radius:8px;font-size:14px}
+  #saveMsg .ok.pr{animation:prFlash 1s ease-in-out 2}
+  @keyframes prFlash{0%,100%{box-shadow:0 0 0 rgba(183,255,50,0)}50%{box-shadow:0 0 22px rgba(183,255,50,.85)}}
+  .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px}
+  .calHead{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px;text-align:center;color:var(--sub);font-size:12px}
+  .calD{text-align:center;padding:8px 0;border-radius:8px;background:var(--panel2);border:1px solid transparent;cursor:pointer;font-size:14px}
+  .calD.has{background:rgba(183,255,50,.22);font-weight:800}
+  .calD.today{border-color:var(--lime)}
+  .calD.dim{opacity:.32;cursor:default}
+  .calD.sel{outline:2px solid var(--lime)}
+  .planRow{display:flex;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;background:var(--panel2);cursor:pointer}
+  .planRow.doneP{border-color:var(--lime)}
 </style>
 </head>
 <body>
-<header style="background:linear-gradient(90deg,#141821,#16241e 60%,#1a2436)"><h1><span style="color:#B7FF32">▚</span> IRON LEGENDS</h1><p>v0.18 — 戦闘の代わりに育成要素（機体進化・成長ボード・称号）</p></header>
+<header style="background:linear-gradient(90deg,#141821,#16241e 60%,#1a2436)"><h1><span style="color:#B7FF32">▚</span> IRON LEGENDS</h1><p>v0.19 — 記録アプリの決定版（セット種別・RPE・推定1RM・ルーティン・カレンダー・プレート計算）</p></header>
 <main>
 <div id="storageWarn" style="display:none;background:rgba(255,86,86,.14);border:1px solid #FF5656;color:#ffd7d7;border-radius:10px;padding:12px;margin-bottom:12px;font-size:14px">
 <b>記録を保存できない開き方になっています。</b><br>プレビュー表示ではデータが保持されません。Safariで開き直すか、ホーム画面に追加して使ってください。
@@ -157,10 +175,40 @@
     <button class="act milBtn" id="goBattleBtn" type="button" style="margin:0 0 12px"><svg class="btnIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>機体の育成を見る</button>
     <div class="card"><h2>自己ベスト<span class="en">PR</span></h2><div id="pbList"><p class="muted">まだ記録がありません。記録タブから1セット入れてみてください。</p></div></div>
     <div class="card"><h2>体重</h2><p id="weightNow" class="muted">未登録</p><div id="weightChart"></div><p class="muted">体重は設定で更新できます。更新するたびに推移として残ります。</p></div>
+    <div class="card"><h2>カレンダー<span class="en">CALENDAR</span></h2>
+      <div class="row" style="align-items:center">
+        <button class="sub" id="calPrev" type="button" style="flex:none;padding:8px 14px">‹</button>
+        <b id="calTitle" style="flex:1;text-align:center"></b>
+        <button class="sub" id="calNext" type="button" style="flex:none;padding:8px 14px">›</button>
+      </div>
+      <p class="muted" id="streakText" style="margin:8px 0 0"></p>
+      <div class="calHead"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>
+      <div id="calGrid" class="calGrid"></div>
+      <div id="calDay" style="margin-top:10px"></div>
+    </div>
   </section>
 
   <!-- TRAINING -->
   <section id="tab-train">
+    <div class="card"><h2>ルーティン<span class="en">ROUTINE</span></h2>
+      <div id="routineList"><p class="muted">まだルーティンがありません。下の「ルーティンを作る」から作れます。</p></div>
+      <div id="planBox" style="display:none;margin-top:10px">
+        <div style="font-weight:700" id="planTitle">今日の予定</div>
+        <div id="planList" style="margin-top:6px"></div>
+        <button class="sub" id="planClose" type="button" style="margin-top:8px">予定を閉じる</button>
+      </div>
+      <details style="margin-top:12px"><summary>ルーティンを作る</summary>
+        <div id="draftList" style="margin:8px 0"><p class="muted">種目がまだ入っていません。</p></div>
+        <div class="row">
+          <button class="sub" id="draftAdd" type="button">今選んでいる種目を追加</button>
+          <button class="sub" id="draftClear" type="button">下書きを消す</button>
+        </div>
+        <label>ルーティンの名前</label>
+        <input id="routineName" placeholder="例：胸と三頭の日">
+        <button class="act" id="routineSave" type="button" style="margin-top:10px">ルーティンを保存</button>
+        <p class="muted" id="routineMsg"></p>
+      </details>
+    </div>
     <div class="card"><h2>記録する</h2>
       <label>日付</label><input type="date" id="fDate">
       <label>部位</label><div id="catChips"></div>
@@ -177,11 +225,20 @@
         <div class="muted" id="exPb" style="margin-top:2px"></div>
       </div>
       <div id="prevBox" class="muted" style="margin-top:10px"></div>
+      <div id="exNoteBox" style="margin-top:10px">
+        <div class="muted" id="exNoteText" style="margin-bottom:6px"></div>
+        <div class="row">
+          <input id="exNoteInput" placeholder="種目メモ（例：シート位置3、グリップ狭め）" style="flex:1">
+          <button class="sub" id="exNoteSave" type="button" style="flex:none">メモ保存</button>
+        </div>
+      </div>
       <div id="setBox"></div>
       <div class="row">
         <button class="sub" id="addSetBtn" type="button">＋ セットを追加</button>
         <button class="sub" id="clearSetBtn" type="button">セットをリセット</button>
+        <button class="sub" id="warmBtn" type="button">Wセット生成</button>
       </div>
+      <p class="muted" style="margin:4px 0 0">セットの種類：通常 ／ W＝ウォームアップ（自己ベストの判定から外れます）／ D＝ドロップ ／ F＝限界まで。Wセット生成は、1つ目の重さから 40%・60%・80% の下準備セットを作ります。</p>
       <div id="restBox">
         <div class="row" style="align-items:center">
           <span style="font-weight:700">休憩タイマー</span>
@@ -207,11 +264,27 @@
       <button class="act" id="saveBtn" type="button">この記録を保存する</button>
       <p class="muted" id="saveMsg"></p>
     </div>
+    <div class="card"><h2>プレート計算<span class="en">PLATES</span></h2>
+      <div class="row">
+        <input type="number" id="plateTarget" inputmode="decimal" step="0.5" min="0" placeholder="目標の重さ kg" style="flex:1">
+        <select id="plateBar" style="flex:none;width:130px">
+          <option value="20">バー 20kg</option>
+          <option value="15">バー 15kg</option>
+        </select>
+      </div>
+      <p id="plateResult" class="muted" style="margin:8px 0 0">重さを入れると、片側に付けるプレートを表示します。</p>
+    </div>
     <div class="card"><h2>今日の記録</h2><div id="todayList"><p class="muted">まだありません。</p></div></div>
     <div class="card"><h2>履歴</h2><div id="histList"><p class="muted">まだ記録がありません。</p></div></div>
     <div class="card"><h2>分析<span class="en">ANALYSIS</span></h2>
-      <label style="margin-top:0">種目（重量の推移）</label>
+      <label style="margin-top:0">種目</label>
       <select id="anaEx"></select>
+      <label>指標</label>
+      <select id="anaMetric">
+        <option value="w">最大重量</option>
+        <option value="e">推定1RM</option>
+        <option value="v">総ボリューム（重量×回数の合計）</option>
+      </select>
       <div id="anaChart" style="margin-top:10px"></div>
       <p class="muted" id="anaMeta">記録のある筋トレ種目を選ぶと、その日の最大重量の推移を表示します。</p>
     </div>
@@ -411,7 +484,7 @@ var CATALOG={
   "有酸素":["ウォーキング","ランニング","エアロバイク","エリプティカル","ステアクライマー","ロウイングマシン","水泳","縄跳び"]
 };
 var BIG3=["ベンチプレス","スクワット","デッドリフト"];
-function blank(){return {v:1,profile:{},records:[],weights:[],custom:{},game:{spent:0,items:[],equip:{WEAPON:null,ARMOR:null,BOOSTER:null},battleExp:0,bonusTickets:0,progress:{cleared:{},stageUnlocked:1}}};}
+function blank(){return {v:1,profile:{},records:[],weights:[],custom:{},exNotes:{},routines:[],game:{spent:0,items:[],equip:{WEAPON:null,ARMOR:null,BOOSTER:null},battleExp:0,bonusTickets:0,progress:{cleared:{},stageUnlocked:1}}};}
 function gameProgress(){var g=DB.game;if(!g.progress)g.progress={cleared:{},stageUnlocked:1};if(!g.progress.cleared)g.progress.cleared={};if(typeof g.progress.stageUnlocked!=="number")g.progress.stageUnlocked=1;return g.progress;}
 function normalize(d){
   if(!d.profile)d.profile={}; if(!Array.isArray(d.records))d.records=[];
@@ -425,6 +498,8 @@ function normalize(d){
   if(typeof d.game.bonusTickets!=="number")d.game.bonusTickets=0;
   if(!d.game.progress||typeof d.game.progress!=="object")d.game.progress={cleared:{},stageUnlocked:1};
   if(!d.game.progress.cleared)d.game.progress.cleared={};
+  if(!d.exNotes)d.exNotes={};
+  if(!Array.isArray(d.routines))d.routines=[];
   if(typeof d.game.progress.stageUnlocked!=="number")d.game.progress.stageUnlocked=1;
   d.records.forEach(function(r,i){if(!r.id)r.id="x"+i+"_"+String(r.date||"").replace(/-/g,"");});
   return d;
@@ -476,33 +551,50 @@ function renderPrev(){
   var pbTxt="自己ベスト：まだありません";
   if(all.length){
     var bw=all.every(function(r){return r.sets.every(function(s){return !+s.w;});});
-    if(bw){var mr=0;all.forEach(function(r){r.sets.forEach(function(s){mr=Math.max(mr,+s.r||0);});});pbTxt="自己ベスト：最大 "+mr+" 回";}
-    else{var mw=0;all.forEach(function(r){r.sets.forEach(function(s){mw=Math.max(mw,+s.w||0);});});pbTxt="自己ベスト："+mw+" kg";}
+    if(bw){var mr=0;all.forEach(function(r){workSets(r).forEach(function(s){mr=Math.max(mr,+s.r||0);});});pbTxt="自己ベスト：最大 "+mr+" 回";}
+    else{var bo=bestOfExercise(curEx);pbTxt="自己ベスト："+bo.w+" kg ／ 推定1RM "+bo.e1rm+" kg";}
   }
+  var nt=$("exNoteText"),ni=$("exNoteInput");
+  if(nt){var nv=DB.exNotes[curEx]||"";nt.textContent=nv?("メモ："+nv):"";if(ni&&document.activeElement!==ni)ni.value=nv;}
   $("exPb").textContent=pbTxt+" ／ "+curCat;
   var p=lastFor(curEx);
   if(!p){$("prevBox").textContent="この種目は初めてです。前回の記録はありません。";setRows=[{w:"",r:""}];renderSets();return;}
   if(p.sets&&p.sets.length){
     $("prevBox").innerHTML='<div style="font-weight:700;color:var(--text)">前回の記録（'+fmtDate(p.date)+'）</div>'+
       p.sets.map(function(s,i){return '<div class="pvSet"><span>'+(i+1)+'</span><span>'+(+s.w>0?esc(s.w)+' kg':'自重')+' × '+esc(s.r)+' 回</span></div>';}).join("")+
-      '<div style="margin-top:4px">下のセット欄に前回の内容を入れてあります。そのまま使っても、変えても大丈夫です。</div>';
-    setRows=p.sets.map(function(s){return {w:s.w,r:s.r};});
+      '<div style="margin-top:4px">下のセット欄に前回の内容を入れてあります。そのまま使っても、変えても大丈夫です。</div>'+
+      (function(){var be=0;p.sets.forEach(function(s){be=Math.max(be,e1rm(s.w,s.r));});return be>0?'<div style="margin-top:2px">前回の推定1RM：'+be+' kg</div>':"";})();
+    setRows=p.sets.map(function(s){return {w:s.w,r:s.r,t:s.t||"",rpe:s.rpe||""};});
   }else{
     $("prevBox").innerHTML="前回（"+fmtDate(p.date)+"）："+recBody(p);
     setRows=[{w:"",r:""}];
   }
   renderSets();
 }
+var SET_TYPES=[["","通常"],["W","W"],["D","D"],["F","F"]];
 function renderSets(){
   $("setBox").innerHTML=setRows.map(function(s,i){
-    return '<div class="setRow'+(s.done?" done":"")+'"><span class="setNo">'+(i+1)+'</span>'+
+    var seg=SET_TYPES.map(function(tp){
+      return '<button type="button" class="segBtn'+((s.t||"")===tp[0]?" on":"")+'" data-i="'+i+'" data-t="'+tp[0]+'">'+tp[1]+'</button>';
+    }).join("");
+    var rpeOpts=['<option value="">RPE -</option>'].concat(["6","6.5","7","7.5","8","8.5","9","9.5","10"].map(function(v){
+      return '<option value="'+v+'"'+(String(s.rpe||"")===v?" selected":"")+">RPE "+v+"</option>";
+    })).join("");
+    return '<div class="setRow'+(s.done?" done":"")+'"><div class="setMain"><span class="setNo">'+(i+1)+'</span>'+
       '<input class="setIn" type="number" inputmode="decimal" step="0.5" min="0" placeholder="重さ" data-i="'+i+'" data-k="w" value="'+esc(s.w)+'"><span class="unit">kg</span>'+
       '<span style="color:var(--sub)">×</span>'+
       '<input class="setIn" type="number" inputmode="numeric" min="0" placeholder="回数" data-i="'+i+'" data-k="r" value="'+esc(s.r)+'"><span class="unit">回</span>'+
       '<button class="miniBtn copyBtn" type="button" data-i="'+i+'" title="上のセット（1つ目は前回）を写す">↑</button>'+
       '<button class="miniBtn doneBtn'+(s.done?" on":"")+'" type="button" data-i="'+i+'" title="このセットを完了にする">✓</button>'+
-      '<button class="miniBtn delBtn" type="button" data-i="'+i+'" title="このセットを消す">×</button></div>';
+      '<button class="miniBtn delBtn" type="button" data-i="'+i+'" title="このセットを消す">×</button></div>'+
+      '<div class="setSub"><div class="segType">'+seg+'</div><select class="rpeSel" data-i="'+i+'">'+rpeOpts+'</select></div></div>';
   }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll("#setBox .segBtn"),function(b){
+    b.onclick=function(){var i=+b.getAttribute("data-i");setRows[i].t=b.getAttribute("data-t");renderSets();};
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#setBox .rpeSel"),function(sel){
+    sel.onchange=function(){setRows[+sel.getAttribute("data-i")].rpe=sel.value;};
+  });
   Array.prototype.forEach.call(document.querySelectorAll("#setBox input"),function(inp){
     inp.oninput=function(){setRows[+inp.getAttribute("data-i")][inp.getAttribute("data-k")]=inp.value;};
   });
@@ -531,6 +623,13 @@ function renderSets(){
   });
 }
 function volOf(r){return (r.sets||[]).reduce(function(a,s){return a+(+s.w||0)*(+s.r||0);},0);}
+function workSets(r){return (r.sets||[]).filter(function(s){return s.t!=="W";});}
+function e1rm(w,r){w=+w||0;r=+r||0;if(!w||!r)return 0;if(r===1)return w;return Math.round(w*(1+r/30)*10)/10;}
+function bestOfExercise(ex){
+  var bw=0,be=0;
+  DB.records.forEach(function(r){if(r.ex!==ex)return;workSets(r).forEach(function(s){var w=+s.w||0;bw=Math.max(bw,w);be=Math.max(be,e1rm(w,s.r));});});
+  return {w:bw,e1rm:be};
+}
 function weekStart(){var d=new Date();var day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return todayStr(d);}
 function weekKeyOf(s){var p=s.split("-");var dt=new Date(+p[0],+p[1]-1,+p[2]);var day=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-day);return todayStr(dt);}
 /* ===== M2: ゲーム連動（記録から自動計算。消せば戻る、書き出しでも壊れない） ===== */
@@ -576,11 +675,14 @@ function computeGame(){
     var wk=weekKeyOf(r.date);if(!weeks[wk])weeks[wk]={};weeks[wk][r.date]=1;
     if(r.sets&&r.sets.length){
       exp+=10;catExp[stat]+=50;
-      var maxW=-1,maxR=0;
-      r.sets.forEach(function(s){var w=+s.w||0,rp=+s.r||0;if(w>maxW||(w===maxW&&rp>maxR)){maxW=w;maxR=rp;}});
-      var prev=best[r.ex];
-      if(prev&&(maxW>prev.w||(maxW===prev.w&&maxR>prev.r))){exp+=50;catExp[stat]+=50;}
-      if(!prev||maxW>prev.w||(maxW===prev.w&&maxR>prev.r))best[r.ex]={w:maxW,r:maxR};
+      var ws19=workSets(r);
+      if(ws19.length){
+        var maxW=-1,maxR=0;
+        ws19.forEach(function(s){var w=+s.w||0,rp=+s.r||0;if(w>maxW||(w===maxW&&rp>maxR)){maxW=w;maxR=rp;}});
+        var prev=best[r.ex];
+        if(prev&&(maxW>prev.w||(maxW===prev.w&&maxR>prev.r))){exp+=50;catExp[stat]+=50;}
+        if(!prev||maxW>prev.w||(maxW===prev.w&&maxR>prev.r))best[r.ex]={w:maxW,r:maxR};
+      }
     }else{
       var gain=Math.min(60,Math.floor((+r.min||0)/10)*10);
       exp+=gain;catExp[stat]+=50;
@@ -870,18 +972,22 @@ function renderAnalysis(){
   if(!exNames.length){sel.innerHTML="";$("anaChart").innerHTML="";$("anaMeta").textContent="記録のある筋トレ種目を選ぶと、その日の最大重量の推移を表示します。";return;}
   if(!anaExSel||exNames.indexOf(anaExSel)<0)anaExSel=exNames[0];
   sel.innerHTML=exNames.map(function(n){return "<option"+(n===anaExSel?" selected":"")+">"+esc(n)+"</option>";}).join("");
+  var metric=($("anaMetric")&&$("anaMetric").value)||"w";
   var byDate={};
   DB.records.forEach(function(r){
     if(!(r.kind==="strength"||(r.sets&&r.sets.length))||r.ex!==anaExSel)return;
-    var mx=0,mr=0;
-    (r.sets||[]).forEach(function(s){var wv=parseFloat(s.w)||0,rp=parseFloat(s.r)||0;if(wv>mx)mx=wv;if(rp>mr)mr=rp;});
-    var cur=byDate[r.date]||{w:0,r:0};
-    cur.w=Math.max(cur.w,mx);cur.r=Math.max(cur.r,mr);byDate[r.date]=cur;
+    var mx=0,mr=0,me=0,vol=0;
+    workSets(r).forEach(function(s){var wv=parseFloat(s.w)||0,rp=parseFloat(s.r)||0;if(wv>mx)mx=wv;if(rp>mr)mr=rp;me=Math.max(me,e1rm(wv,rp));vol+=wv>0?wv*rp:rp;});
+    var cur=byDate[r.date]||{w:0,r:0,e:0,v:0};
+    cur.w=Math.max(cur.w,mx);cur.r=Math.max(cur.r,mr);cur.e=Math.max(cur.e,me);cur.v+=vol;byDate[r.date]=cur;
   });
   var dates=Object.keys(byDate).sort();
   var useW=dates.some(function(dt){return byDate[dt].w>0;});
-  var unit=useW?"kg":"回";
-  var vals=dates.map(function(dt){return useW?byDate[dt].w:byDate[dt].r;});
+  var unit="kg",mLabel="最大重量";
+  if(metric==="e")mLabel="推定1RM";
+  if(metric==="v"){mLabel="総ボリューム";if(!useW)unit="回";}
+  if(metric==="w"&&!useW){unit="回";mLabel="最大回数";}
+  var vals=dates.map(function(dt){var d=byDate[dt];return metric==="e"?d.e:(metric==="v"?d.v:(useW?d.w:d.r));});
   var maxV=Math.max.apply(null,vals),minV=Math.min.apply(null,vals);
   var W=320,H=110,PAD=10,range=(maxV-minV)||1;
   var pts=dates.map(function(dt,i){
@@ -896,7 +1002,7 @@ function renderAnalysis(){
     +(dates.length>1?'<polyline points="'+line+'" fill="none" stroke="#B7FF32" stroke-width="2.5"/>':"")+dots
     +'<text x="2" y="'+(H-2)+'" font-size="9" fill="#929C96">'+dates[0].slice(5)+"</text>"
     +'<text x="'+(W-2)+'" y="'+(H-2)+'" font-size="9" fill="#929C96" text-anchor="end">'+dates[dates.length-1].slice(5)+"</text></svg>";
-  $("anaMeta").textContent=anaExSel+"："+dates.length+"日分の記録 ／ 自己ベスト "+maxV+unit+" ／ 直近 "+vals[vals.length-1]+unit+(useW?"（その日の最大重量）":"（その日の最大回数）");
+  $("anaMeta").textContent=anaExSel+"："+dates.length+"日分の記録 ／ "+mLabel+"のベスト "+maxV+unit+" ／ 直近 "+vals[vals.length-1]+unit;
 }
 var PLAYER_EVO=0;
 var EVO_STAGES=[
@@ -916,8 +1022,9 @@ function countPBs(){
   var best={},n=0;
   recs.forEach(function(r){
     if(!r.sets||!r.sets.length)return;
+    var ws19=workSets(r);if(!ws19.length)return;
     var maxW=-1,maxR=0;
-    r.sets.forEach(function(s){var w=+s.w||0,rp=+s.r||0;if(w>maxW||(w===maxW&&rp>maxR)){maxW=w;maxR=rp;}});
+    ws19.forEach(function(s){var w=+s.w||0,rp=+s.r||0;if(w>maxW||(w===maxW&&rp>maxR)){maxW=w;maxR=rp;}});
     var prev=best[r.ex];
     if(prev&&(maxW>prev.w||(maxW===prev.w&&maxR>prev.r)))n++;
     if(!prev||maxW>prev.w||(maxW===prev.w&&maxR>prev.r))best[r.ex]={w:maxW,r:maxR};
@@ -941,11 +1048,25 @@ function renderGrowth(){
   }
   var he=$("homeEvo");if(he)he.textContent="機体進化："+cur.name;
   var names={POWER:"POWER（押す力）",ARMOR:"ARMOR（引く・体幹）",DRIVE:"DRIVE（脚）",CONTROL:"CONTROL（肩・腕）",ENERGY:"ENERGY（有酸素）"};
+  var statCats={POWER:["胸・押す"],ARMOR:["背中・引く","体幹"],DRIVE:["脚・下半身"],CONTROL:["肩・腕"],ENERGY:["有酸素"]};
+  var lastByStat={};
+  Object.keys(statCats).forEach(function(k){
+    var last="";
+    DB.records.forEach(function(r){if(statCats[k].indexOf(r.cat)>=0&&r.date>last)last=r.date;});
+    lastByStat[k]=last;
+  });
+  var todayD=new Date();
   $("growthBoard").innerHTML=Object.keys(names).map(function(k){
     var ce=g.catExp[k],rem=50-(ce%50);
+    var agoTxt="まだ記録なし";
+    if(lastByStat[k]){
+      var lp=lastByStat[k].split("-"),ld=new Date(+lp[0],+lp[1]-1,+lp[2]);
+      var dd=Math.round((new Date(todayD.getFullYear(),todayD.getMonth(),todayD.getDate())-ld)/86400000);
+      agoTxt=dd<=0?"今日やった":("前回から "+dd+" 日");
+    }
     return '<div class="growRow"><div class="row"><b>'+names[k]+'</b><span class="num" style="font-weight:800">'+g.stats[k]+'</span></div>'+
       '<div class="meter"><div style="width:'+Math.round((ce%50)/50*100)+'%"></div></div>'+
-      '<div class="muted" style="font-size:12px">次の +1 まで あと EXP '+rem+'（その部位の記録 約 '+Math.ceil(rem/50)+' 件）</div></div>';
+      '<div class="muted" style="font-size:12px">次の +1 まで あと EXP '+rem+'（その部位の記録 約 '+Math.ceil(rem/50)+' 件）／ '+agoTxt+'</div></div>';
   }).join("");
   var allRecs=DB.records,ws=weekStart();
   DB.records=allRecs.filter(function(r){return r.date<ws;});
@@ -982,7 +1103,91 @@ function renderGrowth(){
     return '<div class="badge'+(got?" got":"")+'"><div class="bic">'+(got?"✓":"・")+'</div><div class="btx"><div class="bname">'+esc(b.n)+'</div><div class="bprog">'+esc(b.d)+'（現在 '+Math.min(b.v,b.t)+' / '+b.t+'）</div></div></div>';
   }).join("");
 }
-function renderAll(){renderGrowth();renderHome();renderMechHome();renderToday();renderHist();renderAnalysis();renderHangar();renderGacha();renderStages();renderProf();}
+var draftRoutine=[],activePlan=null,calCursor=null,calSel="";
+function jumpToExercise(cat,ex){
+  curCat=cat;curEx=ex;renderCats();renderEx();
+  var el=$("exHead");if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderRoutines(){
+  var box=$("routineList");if(!box)return;
+  if(!DB.routines.length){box.innerHTML='<p class="muted">まだルーティンがありません。下の「ルーティンを作る」から作れます。</p>';}
+  else{
+    box.innerHTML=DB.routines.map(function(r,i){
+      return '<div class="planRow"><div style="flex:1"><b>'+esc(r.name)+'</b><div class="muted" style="font-size:12px">'+r.items.map(function(x){return esc(x.ex);}).join(" ／ ")+'</div></div>'+
+        '<button class="sub loadRoutine" data-i="'+i+'" type="button" style="flex:none">呼び出す</button>'+
+        '<button class="sub danger delRoutine" data-i="'+i+'" type="button" style="flex:none">消す</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll(".loadRoutine"),function(b){
+      b.onclick=function(){activePlan=DB.routines[+b.getAttribute("data-i")];renderPlan();};
+    });
+    Array.prototype.forEach.call(box.querySelectorAll(".delRoutine"),function(b){
+      b.onclick=function(){
+        var i=+b.getAttribute("data-i");
+        askConfirm("ルーティン「"+DB.routines[i].name+"」を消しますか？","消す",function(){DB.routines.splice(i,1);save();renderRoutines();});
+      };
+    });
+  }
+  var dl=$("draftList");
+  if(dl)dl.innerHTML=draftRoutine.length?draftRoutine.map(function(x,i){return '<div class="muted">'+(i+1)+". "+esc(x.ex)+'（'+esc(x.cat)+'）</div>';}).join(""):'<p class="muted">種目がまだ入っていません。</p>';
+  renderPlan();
+}
+function renderPlan(){
+  var box=$("planBox");if(!box)return;
+  if(!activePlan){box.style.display="none";return;}
+  box.style.display="block";
+  $("planTitle").textContent="今日の予定："+activePlan.name;
+  var t=todayStr();
+  var doneEx={};DB.records.forEach(function(r){if(r.date===t)doneEx[r.ex]=1;});
+  $("planList").innerHTML=activePlan.items.map(function(x,i){
+    var done=!!doneEx[x.ex];
+    return '<div class="planRow'+(done?" doneP":"")+'" data-i="'+i+'"><span>'+(done?"✓":"・")+'</span><span style="flex:1">'+esc(x.ex)+'</span><span class="muted" style="font-size:12px">'+(done?"記録済み":"タップで入力へ")+'</span></div>';
+  }).join("");
+  Array.prototype.forEach.call($("planList").querySelectorAll(".planRow"),function(row){
+    row.onclick=function(){var x=activePlan.items[+row.getAttribute("data-i")];jumpToExercise(x.cat,x.ex);};
+  });
+}
+function renderCalendar(){
+  var grid=$("calGrid");if(!grid)return;
+  if(!calCursor){var n0=new Date();calCursor=new Date(n0.getFullYear(),n0.getMonth(),1);}
+  var y=calCursor.getFullYear(),m=calCursor.getMonth();
+  $("calTitle").textContent=y+"年 "+(m+1)+"月";
+  var recDays={};DB.records.forEach(function(r){recDays[r.date]=1;});
+  var firstDow=(new Date(y,m,1).getDay()+6)%7;
+  var dim=new Date(y,m+1,0).getDate();
+  var todayS=todayStr();
+  var cells="";
+  for(var i=0;i<firstDow;i++)cells+='<div class="calD dim"></div>';
+  for(var d=1;d<=dim;d++){
+    var ds=y+"-"+("0"+(m+1)).slice(-2)+"-"+("0"+d).slice(-2);
+    cells+='<div class="calD'+(recDays[ds]?" has":"")+(ds===todayS?" today":"")+(ds===calSel?" sel":"")+'" data-d="'+ds+'">'+d+"</div>";
+  }
+  grid.innerHTML=cells;
+  Array.prototype.forEach.call(grid.querySelectorAll(".calD[data-d]"),function(c){
+    c.onclick=function(){calSel=c.getAttribute("data-d");renderCalendar();};
+  });
+  var wkSet={};DB.records.forEach(function(r){wkSet[weekKeyOf(r.date)]=1;});
+  var streak=0,probe=new Date();probe.setDate(probe.getDate()-((probe.getDay()+6)%7));
+  if(!wkSet[todayStr(probe)])probe.setDate(probe.getDate()-7);
+  while(wkSet[todayStr(probe)]){streak++;probe.setDate(probe.getDate()-7);}
+  $("streakText").textContent=streak>0?("現在 "+streak+" 週連続でトレーニングを記録しています。"):"今週の記録で、連続週が始まります。";
+  var dayBox=$("calDay");
+  if(calSel){
+    var rs=DB.records.filter(function(r){return r.date===calSel;});
+    dayBox.innerHTML='<b>'+fmtDate(calSel)+' の記録</b>'+(rs.length?rs.map(function(r){return '<div class="muted" style="margin-top:4px">'+esc(r.ex)+'：'+recBody(r)+"</div>";}).join(""):'<p class="muted">この日の記録はありません。</p>');
+  }else dayBox.innerHTML='<p class="muted">日付をタップすると、その日の記録が見られます。</p>';
+}
+function calcPlates(){
+  var out=$("plateResult");if(!out)return;
+  var target=parseFloat($("plateTarget").value)||0,bar=parseFloat($("plateBar").value)||20;
+  if(!target){out.textContent="重さを入れると、片側に付けるプレートを表示します。";return;}
+  if(target<bar){out.textContent="バーの重さ（"+bar+"kg）より軽いです。";return;}
+  var side=(target-bar)/2,plates=[25,20,15,10,5,2.5,1.25],used=[];
+  plates.forEach(function(p){while(side>=p-0.001){used.push(p);side-=p;}});
+  var cnt={};used.forEach(function(p){cnt[p]=(cnt[p]||0)+1;});
+  var txt=Object.keys(cnt).sort(function(a,b){return b-a;}).map(function(p){return p+"kg×"+cnt[p];}).join("、");
+  out.textContent="片側："+(txt||"プレートなし（バーのみ）")+(side>0.01?(" ／ 端数 "+Math.round(side*2*10)/10+"kg は付けられません（一番近い合計は "+(target-Math.round(side*2*10)/10)+"kg）"):" ／ ぴったりです");
+}
+function renderAll(){renderGrowth();renderHome();renderCalendar();renderRoutines();renderMechHome();renderToday();renderHist();renderAnalysis();renderHangar();renderGacha();renderStages();renderProf();}
 var curTab="home";
 function switchTab(tab){
   curTab=tab;
@@ -1013,6 +1218,25 @@ function startRest(){
   restTimer=setInterval(restTick,250);
   $("restStartBtn").textContent="ストップ";
 }
+$("plateTarget").oninput=calcPlates;
+$("plateBar").onchange=calcPlates;
+$("calPrev").onclick=function(){calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()-1,1);renderCalendar();};
+$("calNext").onclick=function(){calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()+1,1);renderCalendar();};
+$("draftAdd").onclick=function(){
+  if(!draftRoutine.some(function(x){return x.ex===curEx;}))draftRoutine.push({cat:curCat,ex:curEx});
+  renderRoutines();
+};
+$("draftClear").onclick=function(){draftRoutine=[];renderRoutines();};
+$("routineSave").onclick=function(){
+  var nm=$("routineName").value.trim();
+  if(!nm){$("routineMsg").textContent="名前を入れてください。";return;}
+  if(!draftRoutine.length){$("routineMsg").textContent="先に種目を追加してください。";return;}
+  DB.routines.push({name:nm,items:draftRoutine.slice()});save();
+  draftRoutine=[];$("routineName").value="";
+  $("routineMsg").textContent="「"+nm+"」を保存しました。";
+  renderRoutines();
+};
+$("planClose").onclick=function(){activePlan=null;renderPlan();};
 $("restStartBtn").onclick=function(){if(restTimer){stopRest();$("restDisp").textContent=restSel;}else startRest();};
 Array.prototype.forEach.call(document.querySelectorAll("#restPresets .chip"),function(b){
   b.onclick=function(){
@@ -1021,6 +1245,22 @@ Array.prototype.forEach.call(document.querySelectorAll("#restPresets .chip"),fun
     if(!restTimer)$("restDisp").textContent=restSel;
   };
 });
+$("exNoteSave").onclick=function(){
+  var v=$("exNoteInput").value.trim();
+  DB.exNotes[curEx]=v;save();
+  $("exNoteText").textContent=v?("メモ："+v+"（保存しました）"):"メモを消しました。";
+};
+$("warmBtn").onclick=function(){
+  var base=0;
+  for(var i=0;i<setRows.length;i++){if(+setRows[i].w>0){base=+setRows[i].w;break;}}
+  if(!base){var bo=bestOfExercise(curEx);base=bo.w;}
+  if(!base){$("saveMsg").textContent="Wセットを作るには、先に重さを1つ入れてください。";return;}
+  function r25(x){return Math.max(0,Math.round(x/2.5)*2.5);}
+  var ws=[{w:r25(base*0.4),r:8,t:"W",rpe:""},{w:r25(base*0.6),r:5,t:"W",rpe:""},{w:r25(base*0.8),r:3,t:"W",rpe:""}].filter(function(s){return s.w>0;});
+  setRows=ws.concat(setRows);
+  renderSets();
+  $("saveMsg").textContent="ウォームアップ（"+base+"kg基準）を先頭に追加しました。";
+};
 $("addSetBtn").onclick=function(){setRows.push({w:"",r:""});renderSets();};
 $("clearSetBtn").onclick=function(){setRows=[{w:"",r:""}];renderSets();};
 $("addExBtn").onclick=function(){
@@ -1048,7 +1288,7 @@ $("saveBtn").onclick=function(){
     rec.min=+$("fMin").value||0;rec.km=+$("fKm").value||0;rec.rpe=+$("fRpe").value||0;rec.cal=+$("fCal").value||0;
     if(!rec.min){$("saveMsg").textContent="時間を入れてください。";return;}
   }else{
-    var sets=setRows.filter(function(s){return s.r!=="";}).map(function(s){return {w:s.w===""?0:+s.w,r:+s.r};});
+    var sets=setRows.filter(function(s){return s.r!=="";}).map(function(s){var o={w:s.w===""?0:+s.w,r:+s.r};if(s.t)o.t=s.t;if(s.rpe)o.rpe=s.rpe;return o;});
     if(!sets.length){$("saveMsg").textContent="回数を1セット分入れてください（自重種目は重量を空欄で大丈夫です）。";return;}
     rec.sets=sets;
   }
@@ -1058,17 +1298,24 @@ $("saveBtn").onclick=function(){
     $("saveMsg").innerHTML='<span class="ok">同じ内容は保存済みです。</span>';
     return;
   }
+  var pbBefore=(curCat!=="有酸素")?bestOfExercise(curEx):null;
   DB.records.push(rec);save();
   window.__lastSaveSig=sig;window.__lastSaveAt=nowMs;
   var after=computeGame();
   var msg="保存しました。おつかれさまです。";
+  var isPR=false;
+  if(pbBefore){
+    var pbAfter=bestOfExercise(curEx);
+    if(pbAfter.w>pbBefore.w){isPR=true;msg="自己ベスト更新！ "+curEx+" "+pbAfter.w+"kg（前回 "+pbBefore.w+"kg）。"+msg;}
+    else if(pbAfter.e1rm>pbBefore.e1rm){isPR=true;msg="推定1RMが更新されました！ "+pbAfter.e1rm+"kg。"+msg;}
+  }
   var dExp=after.exp-before.exp;
   if(dExp>0)msg+=" EXP +"+dExp;
   if(after.level>before.level)msg+=" レベルが "+after.level+" に上がりました！";
   if(after.ticketsEarned>before.ticketsEarned)msg+=" チケット +1";
   if(after.weekRate>=100&&before.weekRate<100)msg+=" 今週の目標（週3日）達成です！";
   if(!storageOk)msg+="（注意：いまの開き方では、アプリを閉じると記録が消えてしまいます）";
-  $("saveMsg").innerHTML='<span class="ok">'+esc(msg)+"</span>";
+  $("saveMsg").innerHTML='<span class="ok'+(isPR?" pr":"")+'">'+esc(msg)+"</span>";
   $("fMemo").value="";setRows=[{w:"",r:""}];renderSets();renderAll();
   var sb=$("saveBtn");sb.textContent="保存しました ✓";sb.disabled=true;
   setTimeout(function(){sb.textContent="この記録を保存する";sb.disabled=false;},1600);
@@ -1962,6 +2209,7 @@ function stopHangarView(){HV.active=false;if(HV.raf)cancelAnimationFrame(HV.raf)
 
 $("fDate").value=todayStr();
 $("anaEx").onchange=function(){anaExSel=this.value;renderAnalysis();};
+$("anaMetric").onchange=function(){renderAnalysis();};
 probeStorage();renderCats();renderEx();renderSets();renderAll();
 </script>
 </body>
