@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>IRON LEGENDS — v0.19</title>
+<title>IRON LEGENDS — v0.20</title>
 <style>
   :root{--bg:#090C0B;--panel:#141916;--sub:#202723;--line:#303A33;--lime:#B7FF32;--glow:#D0FF70;--txt:#F1F4F1;--sub2:#929C96;--dis:#59615B;--warn:#FFAD42;--err:#FF5656}
   *{box-sizing:border-box}
@@ -57,7 +57,7 @@
   @keyframes lvlPulse{0%{box-shadow:0 0 0 rgba(183,255,50,0)}30%{box-shadow:0 0 26px rgba(183,255,50,.5)}100%{box-shadow:0 0 0 rgba(183,255,50,0)}}
   .lvlup{animation:lvlPulse 1.6s ease}
   details{margin-top:8px} summary{color:var(--sub2);font-size:13px}
-  #exChips{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow-y:auto;padding:2px}
+  #exChips{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow-y:auto;padding:2px}
   #prevBox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
   #prevBox .pvSet{display:flex;gap:10px;font-size:14px;padding:2px 0;color:var(--text)}
   #prevBox .pvSet span:first-child{color:var(--sub);min-width:14px;text-align:right}
@@ -98,10 +98,51 @@
   .calD.sel{outline:2px solid var(--lime)}
   .planRow{display:flex;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;background:var(--panel2);cursor:pointer}
   .planRow.doneP{border-color:var(--lime)}
+
+  /* ==== v0.20 狭い縦画面に合わせたコンパクトUI ==== */
+  header{padding:12px 14px 10px}
+  header h1{font-size:19px}
+  header p{font-size:12px;margin-top:2px}
+  main{padding:10px 10px 94px}
+  .card{padding:13px 12px;border-radius:14px;margin:9px 0}
+  h2{font-size:16px;margin-bottom:8px}
+  label{font-size:12.5px;margin:11px 0 5px}
+  input,select,textarea{padding:10px;border-radius:10px;min-width:0;max-width:100%}
+  input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left;display:block}
+  input[type="date"]::-webkit-date-and-time-value{text-align:left;margin:0}
+  .row{gap:7px}
+  button.act{padding:13px;font-size:16px;border-radius:11px}
+  button.sub{padding:9px 11px;font-size:13.5px;border-radius:9px}
+  .chips{gap:7px}
+  .chip{padding:9px 13px;font-size:14px}
+  .stat{padding:9px 6px;border-radius:10px}
+  .stat .v{font-size:19px}
+  .rowline{padding:9px 10px;border-radius:10px}
+  .setRow{padding:7px;margin:6px 0;border-radius:11px;flex-direction:column;align-items:stretch}
+  .setMain{display:flex;gap:4px;align-items:center}
+  .setNo{width:17px;font-size:14px;flex:none;text-align:center}
+  .setIn{font-size:19px;padding:10px 2px;border-radius:9px;min-width:0}
+  .wIn{flex:1.3 1 0}
+  .rIn{flex:.9 1 0}
+  .unit{font-size:12px;flex:none;color:#C3CBC4;font-weight:600}
+  .xSep{color:#C3CBC4;font-size:14px;flex:none}
+  .miniBtn{width:41px;height:44px;font-size:16px;border-radius:9px;flex:none}
+  .moreBtn{width:35px;color:var(--sub)}
+  .moreBtn.has{color:var(--lime);border-color:var(--lime)}
+  .doneBtn.on{background:var(--lime);color:#10130c;border-color:var(--lime);font-weight:800}
+  .setRow.done{background:rgba(183,255,50,.08)}
+  .setSub{gap:6px;margin-top:7px;padding-top:7px;border-top:1px dashed var(--line);align-items:center}
+  .segBtn{padding:6px 9px;font-size:12px;border-radius:7px}
+  .rpeSel{padding:7px 6px;font-size:13px;border-radius:8px;flex:1;min-width:0}
+  .smallBtn{width:auto;height:36px;padding:0 10px;font-size:12.5px}
+  .calD{padding:6px 0;font-size:13.5px;border-radius:7px}
+  .nav button{padding:6px 2px 8px;font-size:10.5px;gap:3px}
+  .nav .ic{width:21px;height:21px}
+  #prevBox{font-size:13.5px}
 </style>
 </head>
 <body>
-<header style="background:linear-gradient(90deg,#141821,#16241e 60%,#1a2436)"><h1><span style="color:#B7FF32">▚</span> IRON LEGENDS</h1><p>v0.19 — 記録アプリの決定版（セット種別・RPE・推定1RM・ルーティン・カレンダー・プレート計算）</p></header>
+<header style="background:linear-gradient(90deg,#141821,#16241e 60%,#1a2436)"><h1><span style="color:#B7FF32">▚</span> IRON LEGENDS</h1><p>トレーニング記録 × 育成</p></header>
 <main>
 <div id="storageWarn" style="display:none;background:rgba(255,86,86,.14);border:1px solid #FF5656;color:#ffd7d7;border-radius:10px;padding:12px;margin-bottom:12px;font-size:14px">
 <b>記録を保存できない開き方になっています。</b><br>プレビュー表示ではデータが保持されません。Safariで開き直すか、ホーム画面に追加して使ってください。
@@ -574,6 +615,7 @@ function renderPrev(){
 var SET_TYPES=[["","通常"],["W","W"],["D","D"],["F","F"]];
 function renderSets(){
   $("setBox").innerHTML=setRows.map(function(s,i){
+    var hasDetail=!!(s.t||s.rpe), open=!!(s.open||hasDetail);
     var seg=SET_TYPES.map(function(tp){
       return '<button type="button" class="segBtn'+((s.t||"")===tp[0]?" on":"")+'" data-i="'+i+'" data-t="'+tp[0]+'">'+tp[1]+'</button>';
     }).join("");
@@ -581,19 +623,28 @@ function renderSets(){
       return '<option value="'+v+'"'+(String(s.rpe||"")===v?" selected":"")+">RPE "+v+"</option>";
     })).join("");
     return '<div class="setRow'+(s.done?" done":"")+'"><div class="setMain"><span class="setNo">'+(i+1)+'</span>'+
-      '<input class="setIn" type="number" inputmode="decimal" step="0.5" min="0" placeholder="重さ" data-i="'+i+'" data-k="w" value="'+esc(s.w)+'"><span class="unit">kg</span>'+
-      '<span style="color:var(--sub)">×</span>'+
-      '<input class="setIn" type="number" inputmode="numeric" min="0" placeholder="回数" data-i="'+i+'" data-k="r" value="'+esc(s.r)+'"><span class="unit">回</span>'+
-      '<button class="miniBtn copyBtn" type="button" data-i="'+i+'" title="上のセット（1つ目は前回）を写す">↑</button>'+
+      '<input class="setIn wIn" type="number" inputmode="decimal" step="0.5" min="0" placeholder="重さ" data-i="'+i+'" data-k="w" value="'+esc(s.w)+'"><span class="unit">kg</span>'+
+      '<span class="xSep">×</span>'+
+      '<input class="setIn rIn" type="number" inputmode="numeric" min="0" placeholder="回数" data-i="'+i+'" data-k="r" value="'+esc(s.r)+'"><span class="unit">回</span>'+
       '<button class="miniBtn doneBtn'+(s.done?" on":"")+'" type="button" data-i="'+i+'" title="このセットを完了にする">✓</button>'+
-      '<button class="miniBtn delBtn" type="button" data-i="'+i+'" title="このセットを消す">×</button></div>'+
-      '<div class="setSub"><div class="segType">'+seg+'</div><select class="rpeSel" data-i="'+i+'">'+rpeOpts+'</select></div></div>';
+      '<button class="miniBtn moreBtn'+(hasDetail?" has":"")+'" type="button" data-i="'+i+'" title="種類・RPE・写す・削除">⋯</button></div>'+
+      '<div class="setSub" style="display:'+(open?"flex":"none")+'"><div class="segType">'+seg+'</div><select class="rpeSel" data-i="'+i+'">'+rpeOpts+'</select>'+
+      '<button class="miniBtn smallBtn copyBtn" type="button" data-i="'+i+'" title="上のセット（1つ目は前回）を写す">↑写す</button>'+
+      '<button class="miniBtn smallBtn delBtn" type="button" data-i="'+i+'" title="このセットを消す">削除</button></div></div>';
   }).join("");
   Array.prototype.forEach.call(document.querySelectorAll("#setBox .segBtn"),function(b){
     b.onclick=function(){var i=+b.getAttribute("data-i");setRows[i].t=b.getAttribute("data-t");renderSets();};
   });
   Array.prototype.forEach.call(document.querySelectorAll("#setBox .rpeSel"),function(sel){
-    sel.onchange=function(){setRows[+sel.getAttribute("data-i")].rpe=sel.value;};
+    sel.onchange=function(){setRows[+sel.getAttribute("data-i")].rpe=sel.value;renderSets();};
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#setBox .moreBtn"),function(b){
+    b.onclick=function(){
+      var row=b.closest(".setRow"),sub=row.querySelector(".setSub");
+      var i=+b.getAttribute("data-i");
+      if(sub.style.display==="none"){sub.style.display="flex";setRows[i].open=true;}
+      else{sub.style.display="none";setRows[i].open=false;}
+    };
   });
   Array.prototype.forEach.call(document.querySelectorAll("#setBox input"),function(inp){
     inp.oninput=function(){setRows[+inp.getAttribute("data-i")][inp.getAttribute("data-k")]=inp.value;};
