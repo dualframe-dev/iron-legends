@@ -155,7 +155,7 @@
   <section id="tab-home" class="on">
     <div class="card">
       <div class="row" style="align-items:center">
-        <div><div class="lbl">パイロット</div><div style="font-weight:800;font-size:17px">YAMAMOTO</div></div>
+        <div><div class="lbl">パイロット</div><div id="pilotName" style="font-weight:800;font-size:17px">PILOT</div></div>
         <button class="sub" id="goProfBtn" type="button" style="flex:0 0 auto"><svg class="btnIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>設定</button>
       </div>
     </div>
@@ -373,6 +373,7 @@
 
   <section id="tab-prof">
     <div class="card"><h2>プロフィール</h2>
+      <label>パイロット名</label><input type="text" id="pName" maxlength="20" placeholder="表示名（例：タロウ）">
       <label>年齢</label><input type="number" id="pAge" inputmode="numeric" min="10" max="100">
       <label>性別</label><select id="pSex"><option value="">選択してください</option><option>男性</option><option>女性</option><option>回答しない</option></select>
       <label>身長（cm）</label><input type="number" id="pHeight" inputmode="decimal" step="0.1">
@@ -398,7 +399,9 @@
   <div class="card" style="max-width:340px;margin:16px;width:calc(100% - 32px)">
     <h2 style="margin-top:0">はじめに<span class="en">PROFILE</span></h2>
     <p class="muted">自重トレーニング（腕立て伏せ・懸垂など）の負荷を計算するために、体重を教えてください。あとから設定でも変えられます。</p>
-    <div class="lbl">体重（kg）※必須</div>
+    <div class="lbl">パイロット名（任意）</div>
+    <input id="pmName" type="text" maxlength="20" placeholder="表示名（例：タロウ）">
+    <div class="lbl" style="margin-top:10px">体重（kg）※必須</div>
     <input id="pmWeight" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="例：62.5">
     <div class="lbl" style="margin-top:10px">身長（cm）※任意・表示用</div>
     <input id="pmHeight" type="number" inputmode="decimal" step="0.1" min="100" max="250" placeholder="例：170">
@@ -801,6 +804,8 @@ function renderHist(){
 }
 function renderProf(){
   var p=DB.profile||{};
+  var pn=$("pilotName");if(pn)pn.textContent=p.name||"PILOT";
+  if($("pName"))$("pName").value=p.name||"";
   $("pAge").value=p.age||"";$("pSex").value=p.sex||"";$("pHeight").value=p.height||"";
   $("pWeight").value=p.weight||"";$("pExp").value=p.exp||"";$("pGoal").value=p.goal||"筋力向上";
 }
@@ -1466,7 +1471,7 @@ $("saveBtn").onclick=function(){
   var tl=$("todayList");if(tl&&tl.scrollIntoView)setTimeout(function(){tl.scrollIntoView({behavior:"smooth",block:"start"});},80);
 };
 $("saveProfBtn").onclick=function(){
-  DB.profile={age:$("pAge").value,sex:$("pSex").value,height:$("pHeight").value,
+  DB.profile={name:$("pName").value,age:$("pAge").value,sex:$("pSex").value,height:$("pHeight").value,
     weight:$("pWeight").value,exp:$("pExp").value,goal:$("pGoal").value};
   if($("pWeight").value){
     var t=todayStr();
@@ -2365,6 +2370,7 @@ $("pmSave").onclick=function(){
   var w=+$("pmWeight").value||0;
   if(!(w>0)){$("pmMsg").textContent="体重を入れてください（自重トレーニングの計算に使います）。";return;}
   if(!DB.profile)DB.profile={};
+  if($("pmName").value)DB.profile.name=$("pmName").value;
   DB.profile.weight=$("pmWeight").value;
   if($("pmHeight").value)DB.profile.height=$("pmHeight").value;
   var t=todayStr();var last=DB.weights[DB.weights.length-1];
