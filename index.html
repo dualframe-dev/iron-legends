@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>IRON LEGENDS — v0.17</title>
+<title>IRON LEGENDS — v0.18</title>
 <style>
   :root{--bg:#090C0B;--panel:#141916;--sub:#202723;--line:#303A33;--lime:#B7FF32;--glow:#D0FF70;--txt:#F1F4F1;--sub2:#929C96;--dis:#59615B;--warn:#FFAD42;--err:#FF5656}
   *{box-sizing:border-box}
@@ -71,10 +71,19 @@
   #restBox{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
   #restDisp{font-size:30px;font-weight:800;min-width:86px;text-align:center}
   #saveMsg .ok{display:block;background:rgba(183,255,50,.12);border:1px solid var(--lime);color:var(--text);padding:11px;border-radius:10px;font-size:15px;font-weight:700}
+  .growRow{margin:10px 0}
+  .growRow .meter{margin-top:4px}
+  .badge{display:flex;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin:7px 0;background:var(--panel2)}
+  .badge .bic{flex:none;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--input);color:var(--sub);font-weight:800;font-size:15px}
+  .badge.got{border-color:var(--lime)}
+  .badge.got .bic{background:var(--lime);color:#10130c}
+  .badge .btx{flex:1}
+  .badge .bname{font-weight:700}
+  .badge .bprog{font-size:12px;color:var(--sub)}
 </style>
 </head>
 <body>
-<header style="background:linear-gradient(90deg,#141821,#16241e 60%,#1a2436)"><h1><span style="color:#B7FF32">▚</span> IRON LEGENDS</h1><p>v0.17 — 保存と削除の不具合を修正（完了表示・二重保存防止・自前ダイアログ）</p></header>
+<header style="background:linear-gradient(90deg,#141821,#16241e 60%,#1a2436)"><h1><span style="color:#B7FF32">▚</span> IRON LEGENDS</h1><p>v0.18 — 戦闘の代わりに育成要素（機体進化・成長ボード・称号）</p></header>
 <main>
 <div id="storageWarn" style="display:none;background:rgba(255,86,86,.14);border:1px solid #FF5656;color:#ffd7d7;border-radius:10px;padding:12px;margin-bottom:12px;font-size:14px">
 <b>記録を保存できない開き方になっています。</b><br>プレビュー表示ではデータが保持されません。Safariで開き直すか、ホーム画面に追加して使ってください。
@@ -140,11 +149,12 @@
         <div><div class="lbl">機体レベル</div><div class="big num" id="mechLevel" style="font-size:26px">Lv.1</div></div>
         <div style="text-align:right"><div class="lbl">所持チケット</div><div class="big num lime" id="ticketCount" style="font-size:26px">0</div></div>
       </div>
+      <p class="muted" id="homeEvo" style="margin:8px 0 0"></p>
       <div class="lbl" style="margin-top:10px">経験値 EXP</div>
       <div class="meter" style="margin-top:4px"><div id="expBar" style="width:0%"></div></div>
       <p class="muted" id="expText" style="margin:4px 0 0">EXP 0</p>
     </div>
-    <button class="act milBtn" id="goBattleBtn" type="button" style="margin:0 0 12px"><svg class="btnIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>出撃する</button>
+    <button class="act milBtn" id="goBattleBtn" type="button" style="margin:0 0 12px"><svg class="btnIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>機体の育成を見る</button>
     <div class="card"><h2>自己ベスト<span class="en">PR</span></h2><div id="pbList"><p class="muted">まだ記録がありません。記録タブから1セット入れてみてください。</p></div></div>
     <div class="card"><h2>体重</h2><p id="weightNow" class="muted">未登録</p><div id="weightChart"></div><p class="muted">体重は設定で更新できます。更新するたびに推移として残ります。</p></div>
   </section>
@@ -273,6 +283,26 @@
   </section>
 
   <!-- PROFILE -->
+  <!-- GROWTH -->
+  <section id="tab-growth">
+    <div class="card mil"><h2>機体進化<span class="en">EVOLUTION</span></h2>
+      <div id="evoName" style="font-size:22px;font-weight:800"></div>
+      <p class="muted" id="evoDesc" style="margin:4px 0 0"></p>
+      <div class="lbl" style="margin-top:12px">次の進化まで</div>
+      <div class="meter" style="margin-top:4px"><div id="evoBar" style="width:0%"></div></div>
+      <p class="muted" id="evoNext" style="margin:4px 0 0"></p>
+      <p class="muted" style="margin:10px 0 0">進化は記録から自動で進みます。特別な操作はいりません。進化すると格納庫の機体の見た目が少しずつ変わります。</p>
+    </div>
+    <div class="card"><h2>成長ボード<span class="en">GROWTH</span></h2>
+      <div id="growthBoard"></div>
+      <p class="muted" id="weekGrowth" style="margin:10px 0 0"></p>
+    </div>
+    <div class="card"><h2>称号<span class="en">TITLES</span></h2>
+      <div id="badgeList"></div>
+      <p class="muted" style="margin:8px 0 0">称号は記録の積み重ねで自動でもらえます。競う相手は過去の自分だけです。</p>
+    </div>
+  </section>
+
   <section id="tab-prof">
     <div class="card"><h2>プロフィール</h2>
       <label>年齢</label><input type="number" id="pAge" inputmode="numeric" min="10" max="100">
@@ -308,7 +338,7 @@
   <button data-tab="train"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><br>記録</button>
   <button data-tab="hangar"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M12 9V4"/><circle cx="12" cy="3" r="1"/><path d="M8.5 14h.01M15.5 14h.01"/><path d="M9 17.5h6"/></svg><br>格納庫</button>
   <button data-tab="gacha"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg><br>ガチャ</button>
-  <button data-tab="battle"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg><br>戦闘</button>
+  <button data-tab="growth"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><br>育成</button>
 </nav>
 <div id="battleOverlay" style="display:none;position:fixed;inset:0;z-index:60;background:#050806">
   <canvas id="battleCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
@@ -868,7 +898,91 @@ function renderAnalysis(){
     +'<text x="'+(W-2)+'" y="'+(H-2)+'" font-size="9" fill="#929C96" text-anchor="end">'+dates[dates.length-1].slice(5)+"</text></svg>";
   $("anaMeta").textContent=anaExSel+"："+dates.length+"日分の記録 ／ 自己ベスト "+maxV+unit+" ／ 直近 "+vals[vals.length-1]+unit+(useW?"（その日の最大重量）":"（その日の最大回数）");
 }
-function renderAll(){renderHome();renderMechHome();renderToday();renderHist();renderAnalysis();renderHangar();renderGacha();renderStages();renderProf();}
+var PLAYER_EVO=0;
+var EVO_STAGES=[
+  {at:0,name:"Mk-I ラフフレーム",desc:"初期フレーム。ここから育てていきます。"},
+  {at:5,name:"Mk-II アサルトフレーム",desc:"少しずつ身体ができてきました。"},
+  {at:15,name:"Mk-III ヘヴィフレーム",desc:"背中にフィンが追加されました。"},
+  {at:30,name:"Mk-IV コマンダーフレーム",desc:"頭部に金の角が追加されました。"},
+  {at:50,name:"Mk-V オーバーロード",desc:"肩にスパイクが追加されました。"},
+  {at:80,name:"Mk-Ω ファイナルレジェンド",desc:"最終進化。大きな金の角が2本追加されました。"}
+];
+function evoStageOf(growthSum){
+  var idx=0;EVO_STAGES.forEach(function(s,i){if(growthSum>=s.at)idx=i;});
+  return idx;
+}
+function countPBs(){
+  var recs=DB.records.slice().sort(function(a,b){return a.date<b.date?-1:1;});
+  var best={},n=0;
+  recs.forEach(function(r){
+    if(!r.sets||!r.sets.length)return;
+    var maxW=-1,maxR=0;
+    r.sets.forEach(function(s){var w=+s.w||0,rp=+s.r||0;if(w>maxW||(w===maxW&&rp>maxR)){maxW=w;maxR=rp;}});
+    var prev=best[r.ex];
+    if(prev&&(maxW>prev.w||(maxW===prev.w&&maxR>prev.r)))n++;
+    if(!prev||maxW>prev.w||(maxW===prev.w&&maxR>prev.r))best[r.ex]={w:maxW,r:maxR};
+  });
+  return n;
+}
+function renderGrowth(){
+  var g=computeGame();
+  var growthSum=Object.keys(g.growth).reduce(function(a,k){return a+g.growth[k];},0);
+  var idx=evoStageOf(growthSum);PLAYER_EVO=idx;
+  var cur=EVO_STAGES[idx],next=EVO_STAGES[idx+1];
+  $("evoName").textContent=cur.name;
+  $("evoDesc").textContent=cur.desc+"（成長ポイント合計 "+growthSum+"）";
+  if(next){
+    var span=next.at-cur.at,done=growthSum-cur.at;
+    $("evoBar").style.width=Math.round(done/span*100)+"%";
+    $("evoNext").textContent="次の進化「"+next.name+"」まで、あと "+(next.at-growthSum)+" ポイント（記録 約 "+(next.at-growthSum)+" 件分が目安です）";
+  }else{
+    $("evoBar").style.width="100%";
+    $("evoNext").textContent="最終進化に到達しています。ここからも記録は続きます。";
+  }
+  var he=$("homeEvo");if(he)he.textContent="機体進化："+cur.name;
+  var names={POWER:"POWER（押す力）",ARMOR:"ARMOR（引く・体幹）",DRIVE:"DRIVE（脚）",CONTROL:"CONTROL（肩・腕）",ENERGY:"ENERGY（有酸素）"};
+  $("growthBoard").innerHTML=Object.keys(names).map(function(k){
+    var ce=g.catExp[k],rem=50-(ce%50);
+    return '<div class="growRow"><div class="row"><b>'+names[k]+'</b><span class="num" style="font-weight:800">'+g.stats[k]+'</span></div>'+
+      '<div class="meter"><div style="width:'+Math.round((ce%50)/50*100)+'%"></div></div>'+
+      '<div class="muted" style="font-size:12px">次の +1 まで あと EXP '+rem+'（その部位の記録 約 '+Math.ceil(rem/50)+' 件）</div></div>';
+  }).join("");
+  var allRecs=DB.records,ws=weekStart();
+  DB.records=allRecs.filter(function(r){return r.date<ws;});
+  var before=computeGame();
+  DB.records=allRecs;
+  var wkTxt=[],wkSum=0;
+  Object.keys(names).forEach(function(k){var d=g.growth[k]-before.growth[k];if(d>0){wkTxt.push(k+" +"+d);wkSum+=d;}});
+  $("weekGrowth").textContent=wkSum>0?("今週の伸び：合計 +"+wkSum+"（"+wkTxt.join(" ／ ")+"）"):"今週はまだ伸びの記録がありません。1件の記録で、どれかが +1 伸びます。";
+  /* 称号 */
+  var total=DB.records.length;
+  var wkMap={};DB.records.forEach(function(r){var k2=weekKeyOf(r.date);if(!wkMap[k2])wkMap[k2]={};wkMap[k2][r.date]=1;});
+  var wkDone=Object.keys(wkMap).filter(function(k2){return Object.keys(wkMap[k2]).length>=3;}).length;
+  function maxWOf(ex){var m=0;DB.records.forEach(function(r){if(r.ex===ex&&(r.sets||[]).length)r.sets.forEach(function(s){m=Math.max(m,+s.w||0);});});return m;}
+  var big3=maxWOf("ベンチプレス")+maxWOf("スクワット")+maxWOf("デッドリフト");
+  var cardioMin=DB.records.reduce(function(a,r){return a+(+r.min||0);},0);
+  var pbN=countPBs();
+  var equipped=["WEAPON","ARMOR","BOOSTER"].filter(function(s){return DB.game.equip[s];}).length;
+  var badges=[
+    {n:"はじめの一歩",d:"記録を1件つける",v:total,t:1},
+    {n:"継続中",d:"通算の記録 30件",v:total,t:30},
+    {n:"鉄の継続",d:"通算の記録 100件",v:total,t:100},
+    {n:"週間達成者",d:"週3日を達成した週が1つ",v:wkDone,t:1},
+    {n:"週間マスター",d:"週3日達成を通算4週",v:wkDone,t:4},
+    {n:"ベンチ100kg",d:"ベンチプレスの最大 100kg",v:maxWOf("ベンチプレス"),t:100},
+    {n:"BIG3 300kg",d:"ベンチ＋スクワット＋デッドリフトのベスト合計 300kg",v:big3,t:300},
+    {n:"自己ベスト更新者",d:"自己ベスト更新 10回",v:pbN,t:10},
+    {n:"有酸素ランナー",d:"有酸素の合計 600分",v:cardioMin,t:600},
+    {n:"レベル10到達",d:"機体レベル 10",v:g.level,t:10},
+    {n:"レベル25到達",d:"機体レベル 25",v:g.level,t:25},
+    {n:"フル装備",d:"武器・装甲・ブースターを全部装備",v:equipped,t:3}
+  ];
+  $("badgeList").innerHTML=badges.map(function(b){
+    var got=b.v>=b.t;
+    return '<div class="badge'+(got?" got":"")+'"><div class="bic">'+(got?"✓":"・")+'</div><div class="btx"><div class="bname">'+esc(b.n)+'</div><div class="bprog">'+esc(b.d)+'（現在 '+Math.min(b.v,b.t)+' / '+b.t+'）</div></div></div>';
+  }).join("");
+}
+function renderAll(){renderGrowth();renderHome();renderMechHome();renderToday();renderHist();renderAnalysis();renderHangar();renderGacha();renderStages();renderProf();}
 var curTab="home";
 function switchTab(tab){
   curTab=tab;
@@ -884,7 +998,7 @@ document.querySelectorAll("nav button").forEach(function(b){
 });
 $("goProfBtn").onclick=function(){switchTab("prof");};
 $("goTrainBtn").onclick=function(){switchTab("train");};
-$("goBattleBtn").onclick=function(){switchTab("battle");};
+$("goBattleBtn").onclick=function(){switchTab("growth");};
 var restSel=60,restTimer=null,restEndAt=0;
 function stopRest(){if(restTimer)clearInterval(restTimer);restTimer=null;var b=$("restStartBtn");if(b)b.textContent="START";}
 function restTick(){
@@ -1053,6 +1167,11 @@ function buildMechMesh(torsoColor,weaponColor,boosterColor,scale,isEnemy,kind){
   if(kind==="player"){
     var a1=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.55,4),mat(0xd8dee9));a1.position.set(-0.2,3.2,0);a1.rotation.z=0.3;upper.add(a1);
     var a2=a1.clone();a2.position.x=0.2;a2.rotation.z=-0.3;upper.add(a2);
+    var ev=(typeof PLAYER_EVO!=="undefined")?PLAYER_EVO:0;
+    if(ev>=2){[-1,1].forEach(function(s){var fn=box(upper,0.07,0.9,0.52,s*0.55,2.25,-0.55,torsoColor);fn.rotation.x=-0.5;fn.rotation.z=s*0.3;});}
+    if(ev>=3){var hh=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.55,6),mat(0xd8b25a));hh.position.set(0,3.22,0);upper.add(hh);}
+    if(ev>=4){[-1,1].forEach(function(s){var sp=new THREE.Mesh(new THREE.ConeGeometry(0.13,0.55,6),mat(0xd8dee9));sp.position.set(s*(torsoW/2+shW/2-0.06),2.62,0);upper.add(sp);});}
+    if(ev>=5){[-1,1].forEach(function(s){var bh=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.78,6),mat(0xd8b25a));bh.position.set(s*0.3,3.28,0);bh.rotation.z=-s*0.3;upper.add(bh);});}
   }
   /* 肩 */
   var shW=kind==="boss"?0.78:0.6;
